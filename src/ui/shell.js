@@ -1,6 +1,6 @@
 'use strict';
-/* 应用窗口标题栏：只有 旋转 / 最小化 / 最大化 / 关闭，其余设置都在 ApkStart 主界面 */
-const api = window.apkstart;
+/* 应用窗口标题栏：只有 旋转 / 最小化 / 最大化 / 关闭，其余设置都在 Apknative 主界面 */
+const api = window.apknative || window.apkstart;
 const $ = (id) => document.getElementById(id);
 
 const btn = {
@@ -33,7 +33,7 @@ window.addEventListener('keydown', (e) => {
 
 function applyState(s) {
   if (!s) return;
-  $('appName').textContent = s.label || '应用';
+  $('appName').textContent = s.label || 'Aplicación';
   $('bootName').textContent = s.label || '';
   const icon = s.iconUrl || '';
   if (icon) {

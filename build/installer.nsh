@@ -1,8 +1,8 @@
-; ApkStart 自定义 NSIS 脚本
+; Apknative 自定义 NSIS 脚本
 ; 作用：卸载开始前，先结束可能仍在后台驻留的运行时进程，
 ; 否则它们会锁住安装目录里的文件，导致卸载不干净、第三方粉碎工具也删不掉。
 ;
-; ApkStart 退出后仍可能留下 detached 的 qemu（为了下次秒开），
+; Apknative 退出后仍可能留下 detached 的 qemu（为了下次秒开），
 ; 所以卸载环节必须自己兜底清一遍。
 
 ; 安装收尾：再兜一层桌面图标。
@@ -12,22 +12,27 @@
 ; $DESKTOP 走 SHGetFolderPath，能正确跟随桌面的重定向路径；写成幂等操作，
 ; 和 electron-builder 的重复执行也只是覆盖同一个 .lnk。
 !macro customInstall
-  DetailPrint "正在创建桌面快捷方式…"
-  CreateShortcut "$DESKTOP\ApkStart.lnk" "$INSTDIR\ApkStart.exe" "" "$INSTDIR\ApkStart.exe" 0 \
-    SW_SHOWNORMAL "" "ApkStart — 在电脑上直接运行安卓应用"
-  CreateDirectory "$SMPROGRAMS\ApkStart"
-  CreateShortcut "$SMPROGRAMS\ApkStart\ApkStart.lnk" "$INSTDIR\ApkStart.exe" "" "$INSTDIR\ApkStart.exe" 0 \
-    SW_SHOWNORMAL "" "ApkStart — 在电脑上直接运行安卓应用"
+  DetailPrint "Creando accesos directos en el escritorio…"
+  CreateShortcut "$DESKTOP\Apknative.lnk" "$INSTDIR\Apknative.exe" "" "$INSTDIR\Apknative.exe" 0 \
+    SW_SHOWNORMAL "" "Apknative — Ejecutar aplicaciones Android en Windows"
+  CreateDirectory "$SMPROGRAMS\Apknative"
+  CreateShortcut "$SMPROGRAMS\Apknative\Apknative.lnk" "$INSTDIR\Apknative.exe" "" "$INSTDIR\Apknative.exe" 0 \
+    SW_SHOWNORMAL "" "Apknative — Ejecutar aplicaciones Android en Windows"
 !macroend
 
 !macro customUnInstall
-  ; 先删自己写的快捷方式入口（未安装 ApkStart 时也应无残留）
+  ; 先删自己写的快捷方式入口（未安装 Apknative 时也应无残留）
+  Delete "$DESKTOP\Apknative.lnk"
+  Delete "$SMPROGRAMS\Apknative\Apknative.lnk"
+  RMDir "$SMPROGRAMS\Apknative"
+  ; 清理旧版 ApkStart 快捷方式（如果有）
   Delete "$DESKTOP\ApkStart.lnk"
   Delete "$SMPROGRAMS\ApkStart\ApkStart.lnk"
   RMDir "$SMPROGRAMS\ApkStart"
 
-  DetailPrint "正在结束 ApkStart 残留进程…"
+  DetailPrint "Cerrando procesos residuales de Apknative…"
   ; /F 强杀 /T 连带子进程。进程不存在时 taskkill 返回 128，忽略即可。
+  nsExec::Exec 'taskkill.exe /F /T /IM Apknative.exe'
   nsExec::Exec 'taskkill.exe /F /T /IM ApkStart.exe'
   nsExec::Exec 'taskkill.exe /F /T /IM qemu-system-x86_64.exe'
   nsExec::Exec 'taskkill.exe /F /T /IM qemu-system-i386.exe'

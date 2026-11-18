@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 const invoke = (channel, payload) => ipcRenderer.invoke(channel, payload);
 
-contextBridge.exposeInMainWorld('apkstart', {
+const api = {
   info: () => invoke('app:info'),
   listApps: () => invoke('apps:list'),
   pickApk: () => invoke('apk:pick'),
@@ -159,4 +159,7 @@ contextBridge.exposeInMainWorld('apkstart', {
     ipcRenderer.on(channel, handler);
     return () => ipcRenderer.removeListener(channel, handler);
   },
-});
+};
+
+contextBridge.exposeInMainWorld('apknative', api);
+contextBridge.exposeInMainWorld('apkstart', api);

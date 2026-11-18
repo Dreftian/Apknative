@@ -19,7 +19,7 @@ const FULL = process.argv.includes('--full') || process.env.APKSTART_PACK_FULL =
 // 允许指定输出目录（用于目标目录被正在运行的实例占用时，先构建到别处再替换）
 let OUT = process.env.APKSTART_PACK_OUT
   ? path.resolve(process.env.APKSTART_PACK_OUT)
-  : path.join(ROOT, 'dist', FULL ? `ApkStart-v${PKG.version}-win64-full` : 'ApkStart-win64-portable');
+  : path.join(ROOT, 'dist', FULL ? `Apknative-v${PKG.version}-win64-full` : 'Apknative-win64-portable');
 const ELECTRON_DIST = path.join(ROOT, 'node_modules', 'electron', 'dist');
 
 function copy(src, dest) {
@@ -37,7 +37,7 @@ if (fs.existsSync(OUT)) {
   } catch (_) {
     // 某些环境（杀软 / 搜索索引 / 资源管理器）会长时间持有目录句柄，
     // 整目录改名必然 EBUSY；这时退到带版本号的目录，产物一样可用且不再重名。
-    OUT = path.join(ROOT, 'dist', `ApkStart-v${require(path.join(ROOT, 'package.json')).version}-win64-portable`);
+    OUT = path.join(ROOT, 'dist', `Apknative-v${require(path.join(ROOT, 'package.json')).version}-win64-portable`);
     console.log('旧目录被占用，改输出到 →', OUT);
   }
 }
@@ -50,7 +50,7 @@ fs.rmSync(path.join(OUT, 'resources', 'default_app.asar'), { force: true });
 
 // 1.1 语言包瘦身：Electron 自带 55 种语言，合计 41MB，我们只用中文界面。
 //     只留 zh-CN / zh-TW / en-US，其余删掉（-39MB，等于整包小 15%）。
-const KEEP_LOCALES = new Set(['zh-CN.pak', 'zh-TW.pak', 'en-US.pak']);
+const KEEP_LOCALES = new Set(['es-419.pak', 'es.pak', 'es-US.pak', 'en-US.pak', 'zh-CN.pak', 'zh-TW.pak']);
 let localeSaved = 0;
 try {
   const locDir = path.join(OUT, 'locales');
@@ -125,11 +125,11 @@ if (FULL) {
 assertStandalone(path.join(OUT, 'resources'), { label: '便携版 resources' });
 
 // 4. 改名主程序
-const exePath = path.join(OUT, 'ApkStart.exe');
+const exePath = path.join(OUT, 'Apknative.exe');
 fs.renameSync(path.join(OUT, 'electron.exe'), exePath);
 
 /**
- * 给 ApkStart.exe 写入图标与版本资源。
+ * 给 Apknative.exe 写入图标与版本资源。
  *
  * 为什么必须做：直改名出来的 exe 里面还是 Electron 的东西 ——
  * FileDescription=Electron、ProductName=Electron、CompanyName=GitHub, Inc.、
@@ -160,16 +160,16 @@ function embedExeMeta(exe) {
     // 四段式文件版本（和 MSIX 的口径一致），产品版本用三段式
     '--set-file-version', `${PKG.version}.0`,
     '--set-product-version', PKG.version,
-    '--set-version-string', 'ProductName', 'ApkStart',
-    '--set-version-string', 'FileDescription', 'ApkStart 安卓应用运行器',
+    '--set-version-string', 'ProductName', 'Apknative',
+    '--set-version-string', 'FileDescription', 'Apknative Ejecutor de aplicaciones Android',
     '--set-version-string', 'CompanyName', PKG.author || 'RoutineMiku',
-    '--set-version-string', 'LegalCopyright', 'Copyright (c) 2026 ApkStart',
-    '--set-version-string', 'OriginalFilename', 'ApkStart.exe',
-    '--set-version-string', 'InternalName', 'ApkStart',
+    '--set-version-string', 'LegalCopyright', 'Copyright (c) 2026 Apknative',
+    '--set-version-string', 'OriginalFilename', 'Apknative.exe',
+    '--set-version-string', 'InternalName', 'Apknative',
   ];
   try {
     execFileSync(rcedit, args, { stdio: 'pipe', windowsHide: true });
-    console.log(`  exe 图标/版本已写入（${PKG.version}，FileDescription=ApkStart 安卓应用运行器）`);
+    console.log(`  exe 图标/版本已写入（${PKG.version}，FileDescription=Apknative Ejecutor de aplicaciones Android）`);
     return true;
   } catch (e) {
     console.warn(`  [!] rcedit 失败：${e.message}`);
@@ -182,7 +182,7 @@ embedExeMeta(exePath);
 const pkg = PKG;
 const fullNote = FULL ? '完整版（内置运行时，装完不联网）' : '轻量版（首次启动下载运行时）';
 fs.writeFileSync(path.join(OUT, 'VERSION.txt'),
-  `ApkStart ${pkg.version}\n${fullNote}\n构建时间：${new Date().toLocaleString('zh-CN')}\n`);
+  `Apknative ${pkg.version}\n${fullNote}\n构建时间：${new Date().toLocaleString('zh-CN')}\n`);
 
 // 6. 体积报告：每次打包都打印，避免以后又悄悄变胖
 function dirSize(dir) {
@@ -201,5 +201,5 @@ console.log(
   + `冗余运行库省了 ${(pruneSaved / 1048576).toFixed(1)} MB）。`,
 );
 console.log('压缩：node build/zip.js ' + path.relative(ROOT, OUT) + ' <输出.zip>');
-console.log(`运行 ${path.join(OUT, 'ApkStart.exe')} 即可使用。`);
+console.log(`运行 ${path.join(OUT, 'Apknative.exe')} 即可使用。`);
 if (!FULL) console.log('想要「一次下载、装完不联网」的完整版：node build/pack.js --full');

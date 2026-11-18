@@ -2505,7 +2505,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(/--set-icon/.test(packJs), '要写图标');
     assert(/--set-file-version/.test(packJs), '要写文件版本');
     assert(/--set-version-string', 'FileDescription'/.test(packJs), '要写 FileDescription');
-    assert(/--set-version-string', 'ProductName', 'ApkStart'/.test(packJs), 'ProductName 必须是 ApkStart');
+    assert(/--set-version-string', 'ProductName', '(Apknative|ApkStart)'/.test(packJs), 'ProductName 必须是 Apknative');
     assert(/embedExeMeta\(exePath\)/.test(packJs), '要在改名之后真的调用');
     // 找不到 rcedit 时要明确告警，不能静默产出「Electron 图标」的包
     assert(/找不到 rcedit\.exe/.test(packJs), '缺 rcedit 要告警');
@@ -2514,7 +2514,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(/setAumid\(APP_AUMID\);/.test(mainJs), '启动时要设置 AppUserModelID');
 
     // 完整版（含运行时）作为一个可交付版本
-    assert(/--full/.test(packJs) && /ApkStart-v\$\{PKG\.version\}-win64-full/.test(packJs),
+    assert(/--full/.test(packJs) && /(Apknative|ApkStart)-v\$\{PKG\.version\}-win64-full/.test(packJs),
       '--full 要产出带版本号的完整版目录');
     assert(/build', 'runtime'/.test(packJs), '完整版要内置 build/runtime');
   });
@@ -2525,7 +2525,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     const { msixVersion } = require(path.join(root, 'build', 'msix.js'));
     const four = msixVersion(pkg.version);
     assert(/^\d+\.\d+\.\d+\.0$/.test(four), `MSIX 四段版本号格式不对：${four}`);
-    const artifact = `ApkStart_${four}_x64.msix`;
+    const artifact = `Apknative_${four}_x64.msix`;
     for (const f of ['docs/store-listing.md', 'docs/store-msix.md', 'docs/store-upload-walkthrough.md']) {
       const t = fs.readFileSync(path.join(root, f), 'utf8');
       assert(t.includes(artifact), `${f} 里应引用当前版本的包名 ${artifact}`);

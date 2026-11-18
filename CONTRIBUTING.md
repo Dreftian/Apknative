@@ -1,55 +1,54 @@
-# 贡献指南
+# Guía de contribución
 
-欢迎提交 Issue 和 Pull Request。这个项目的原则是**壳层零依赖、行为可预测**，所以请先读一下下面的约定。
+Agradecemos tus problemas (issues) y solicitudes de extracción (pull requests). El principio fundamental de **Apknative** es: **entorno ultraligero sin dependencias externas y comportamiento predecible**. Lee las siguientes pautas antes de comenzar.
 
-## 开发环境
+## Entorno de desarrollo
 
 - Windows 10/11 x64
 - Node.js ≥ 20
 - `npm install && npm start`
 
-## 提交前自检
+## Comprobación previa al envío
 
 ```powershell
-npm test          # 纯 Node 单元测试 + 引擎链路测试（不需要网络、不需要虚拟机）
+npm test          # Pruebas unitarias de Node + pruebas de enlace del motor (sin conexión a Internet ni VM)
 ```
 
-涉及界面改动时，建议再跑一次冒烟截图确认没有布局塌陷：
+Al realizar cambios en la interfaz de usuario, se recomienda ejecutar una captura de pantalla de comprobación rápida:
 
 ```powershell
 electron . --smoke test\shot.png
 ```
 
-## 代码约定
+## Convenciones de código
 
-- **壳层不引入第三方运行时依赖**。`src/core/` 下的 ZIP / AXML / ARSC / PNG / ICO 解析都是手写的，
-  新增功能时优先考虑「能不能用 Node 内置模块写完」，避免为了小功能拉进一个大包。
-- 渲染层是原生 HTML/CSS/JS，不使用前端框架。
-- 与安卓侧交互一律走 `src/core/adb.js`，不要在各处直接拼 adb 命令。
-- 主进程与渲染进程之间只通过 `preload.js` 暴露的白名单通道通信，保持 `contextIsolation` 开启。
-- 注释与 UI 文案使用中文，标识符使用英文。
+- **El contenedor principal no introduce dependencias de tiempo de ejecución de terceros**. Los módulos en `src/core/` para ZIP / AXML / ARSC / PNG / ICO están implementados desde cero. Al agregar funciones, prioriza los módulos nativos de Node.js.
+- La capa de presentación utiliza HTML5/CSS/JavaScript vanilla nativo, sin frameworks externos.
+- La comunicación con Android se realiza exclusivamente a través de `src/core/adb.js`; no concatenes comandos `adb` directamente.
+- La comunicación entre el proceso principal y los procesos de renderizado se realiza solo a través de los canales permitidos expuestos por `preload.js`, manteniendo `contextIsolation: true`.
+- Los identificadores de código deben estar en inglés; las cadenas orientadas al usuario se traducen al español.
 
-## 测试约定
+## Convenciones de prueba
 
-- 拿不到真实 APK 时测试会自动跳过 APK 解析部分；要覆盖这部分，设置环境变量指向任意 APK：
+- Cuando no se detecte un archivo APK real, las pruebas omitirán automáticamente el análisis de APK. Para cubrirlas, define la variable de entorno:
 
 ```powershell
-$env:APKSTART_TEST_APK="C:\path\to\any.apk"; npm test
+$env:APKSTART_TEST_APK="C:\ruta\a\cualquier.apk"; npm test
 ```
 
-- 不要在测试里访问外网。需要网络行为的测试请起本地 `http` 服务（参考 `test/engine-test.js`）。
+- No realices peticiones a Internet en las pruebas. Aquellas que requieran comportamiento de red deben iniciar un servidor local `http` (ver `test/engine-test.js`).
 
-## 提交信息
+## Mensajes de confirmación (Commits)
 
-使用 Conventional Commits 风格，例如：
+Utiliza el estándar Conventional Commits, por ejemplo:
 
 ```
-feat(engine): 支持从自定义路径导入 qcow2 磁盘
-fix(axml): 修正属性表基址偏移
-docs: 补充 WHPX 开启说明
+feat(engine): soporte para importar disco qcow2 desde ruta personalizada
+fix(axml): corregir desplazamiento base en la tabla de atributos
+docs: actualizar instrucciones de habilitación de WHPX
 ```
 
-## 法律与边界
+## Aspectos legales y límites
 
-- 本项目不分发任何安卓系统镜像、QEMU 二进制或 Google 组件，全部由用户本机按需下载。
-- 请勿在仓库中提交商业 APK、破解工具或任何侵犯第三方版权的内容。
+- Este proyecto no distribuye imágenes del sistema Android, binarios de QEMU ni componentes propietarios de Google; todos son descargados según sea necesario por el usuario desde fuentes oficiales.
+- No envíes APKs comerciales, herramientas de craqueo ni material que infrinja derechos de autor de terceros al repositorio.

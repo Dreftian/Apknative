@@ -52,8 +52,8 @@ const CONFIRMED_PUBLISHER = 'CN=58CA1DED-8AB3-4D0D-AF50-62C9B781AA4D';
 const IDENTITY = arg('identity') || process.env.APKSTART_MSIX_IDENTITY || CONFIRMED_IDENTITY;
 const PUBLISHER = arg('publisher') || process.env.APKSTART_MSIX_PUBLISHER || CONFIRMED_PUBLISHER;
 const PUBLISHER_DISPLAY = arg('publisherDisplay') || process.env.APKSTART_MSIX_PUBLISHER_DISPLAY || 'RoutineMiku';
-const DISPLAY = arg('display') || process.env.APKSTART_MSIX_DISPLAY || 'ApkStart';
-const APP_ID = arg('appId') || 'ApkStart';
+const DISPLAY = arg('display') || process.env.APKSTART_MSIX_DISPLAY || 'Apknative';
+const APP_ID = arg('appId') || 'Apknative';
 const DO_SIGN = !!arg('sign', false);
 
 const STAGE = path.resolve(String(arg('stage')
@@ -61,10 +61,10 @@ const STAGE = path.resolve(String(arg('stage')
 const OUT_DIR = path.resolve(String(arg('out') || path.join(ROOT, 'dist', 'store')));
 
 /**
- * 选「载荷目录」：就是 MSIX 里 `app\` 下面那份 ApkStart.exe + resources。
+ * 选「载荷目录」：就是 MSIX 里 `app\` 下面那份 Apknative.exe + resources。
  *
  * 两条来源，优先离线那条：
- *   A. dist/ApkStart-win64-portable —— `node build/pack.js` 的产物，**不需要联网**。
+ *   A. dist/Apknative-win64-portable (或 ApkStart-win64-portable) —— `node build/pack.js` 的产物，**不需要联网**。
  *      它只有壳，不带运行时，所以这里额外把 build/runtime 复制进
  *      resources/runtime（就是 electron-builder 的 extraResources 干的事）。
  *   B. dist/release/win-unpacked —— `electron-builder --win dir` 的产物，自带
@@ -76,9 +76,13 @@ const OUT_DIR = path.resolve(String(arg('out') || path.join(ROOT, 'dist', 'store
 function resolvePayload() {
   const explicit = arg('payload');
   if (explicit) return { dir: path.resolve(String(explicit)), addRuntime: false };
-  const portable = path.join(ROOT, 'dist', 'ApkStart-win64-portable');
+  const portableCandidates = [
+    path.join(ROOT, 'dist', 'Apknative-win64-portable'),
+    path.join(ROOT, 'dist', 'ApkStart-win64-portable'),
+  ];
+  const portable = portableCandidates.find((d) => fs.existsSync(path.join(d, 'Apknative.exe')) || fs.existsSync(path.join(d, 'ApkStart.exe'))) || portableCandidates[0];
   const runtime = path.join(ROOT, 'build', 'runtime');
-  if (fs.existsSync(path.join(portable, 'ApkStart.exe'))) {
+  if (fs.existsSync(path.join(portable, 'Apknative.exe')) || fs.existsSync(path.join(portable, 'ApkStart.exe'))) {
     const hasRuntime = fs.existsSync(path.join(portable, 'resources', 'runtime', 'emulator', 'emulator.exe'));
     return { dir: portable, addRuntime: !hasRuntime && fs.existsSync(runtime), runtime };
   }
@@ -219,8 +223,10 @@ function manifest() {
   </Dependencies>
 
   <Resources>
-    <Resource Language="zh-CN" />
+    <Resource Language="es-419" />
+    <Resource Language="es" />
     <Resource Language="en-US" />
+    <Resource Language="zh-CN" />
   </Resources>
 
   <Capabilities>
@@ -236,7 +242,7 @@ function manifest() {
   </Capabilities>
 
   <Applications>
-    <Application Id="${APP_ID}" Executable="app\\ApkStart.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="${APP_ID}" Executable="app\\Apknative.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="${DISPLAY}"
         Description="${pkg.description || DISPLAY}"
@@ -339,8 +345,9 @@ const { assertStandalone } = require('./guard-standalone');
 function stagePackage() {
   const pick = resolvePayload();
   const appSrc = pick.dir;
-  if (!fs.existsSync(path.join(appSrc, 'ApkStart.exe'))) {
-    console.error(`\n找不到 ${path.join(appSrc, 'ApkStart.exe')}。`);
+  const exeName = fs.existsSync(path.join(appSrc, 'Apknative.exe')) ? 'Apknative.exe' : 'ApkStart.exe';
+  if (!fs.existsSync(path.join(appSrc, exeName))) {
+    console.error(`\n找不到 ${path.join(appSrc, 'Apknative.exe')}。`);
     console.error('两条路：');
     console.error('  A) node build/pack.js          （离线，推荐；本脚本会自动把 build/runtime 塞进去）');
     console.error('  B) npx electron-builder --win dir --x64 --config electron-builder.yml');
@@ -443,7 +450,7 @@ function main() {
 }
 
 function artifactName() {
-  return `ApkStart_${msixVersion(VERSION)}_x64.msix`;
+  return `Apknative_${msixVersion(VERSION)}_x64.msix`;
 }
 
 function sign(file) {

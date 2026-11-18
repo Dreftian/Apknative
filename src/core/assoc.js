@@ -5,11 +5,13 @@
  */
 const { execFileSync } = require('child_process');
 
-const PROGID = 'ApkStart.apk';
+const PROGID = 'Apknative.apk';
+const LEGACY_PROGID = 'ApkStart.apk';
 const EXT = '.apk';
 const CLASSES = 'HKCU\\Software\\Classes';
 // 关联前的「原默认程序」记在这里，卸载时原样还回去，别把用户的关联弄丢
-const STORE_KEY = 'HKCU\\Software\\ApkStart';
+const STORE_KEY = 'HKCU\\Software\\Apknative';
+const LEGACY_STORE_KEY = 'HKCU\\Software\\ApkStart';
 const PREV_VALUE = 'assocPrev';
 
 function reg(args) {
@@ -80,10 +82,10 @@ function registerAssociation(exePath, iconPath, extraArgs) {
   reg(['add', `${CLASSES}\\${EXT}`, '/ve', '/d', PROGID, '/f']);
   reg(['add', `${CLASSES}\\${EXT}\\OpenWithProgids`, '/v', PROGID, '/t', 'REG_NONE', '/f']);
 
-  reg(['add', `${CLASSES}\\${PROGID}`, '/ve', '/d', 'Android 应用包', '/f']);
-  reg(['add', `${CLASSES}\\${PROGID}`, '/v', 'FriendlyTypeName', '/d', 'Android 应用包', '/f']);
+  reg(['add', `${CLASSES}\\${PROGID}`, '/ve', '/d', 'Paquete de aplicación Android', '/f']);
+  reg(['add', `${CLASSES}\\${PROGID}`, '/v', 'FriendlyTypeName', '/d', 'Paquete de aplicación Android', '/f']);
   reg(['add', `${CLASSES}\\${PROGID}\\DefaultIcon`, '/ve', '/d', `"${icon}",0`, '/f']);
-  reg(['add', `${CLASSES}\\${PROGID}\\shell\\open`, '/ve', '/d', '安装到 ApkStart', '/f']);
+  reg(['add', `${CLASSES}\\${PROGID}\\shell\\open`, '/ve', '/d', 'Instalar con Apknative', '/f']);
   reg(['add', `${CLASSES}\\${PROGID}\\shell\\open\\command`, '/ve', '/d', command, '/f']);
 
   notifyShell();
@@ -100,7 +102,9 @@ function registerAssociation(exePath, iconPath, extraArgs) {
  */
 function unregisterAssociation() {
   reg(['delete', `${CLASSES}\\${EXT}\\OpenWithProgids`, '/v', PROGID, '/f']);
+  reg(['delete', `${CLASSES}\\${EXT}\\OpenWithProgids`, '/v', LEGACY_PROGID, '/f']);
   reg(['delete', `${CLASSES}\\${PROGID}`, '/f']);
+  reg(['delete', `${CLASSES}\\${LEGACY_PROGID}`, '/f']);
 
   const prev = readPrev();
   const current = regDefault(`${CLASSES}\\${EXT}`);
@@ -108,10 +112,11 @@ function unregisterAssociation() {
   if (prev) {
     reg(['add', `${CLASSES}\\${EXT}`, '/ve', '/d', prev, '/f']);
     restored = prev;
-  } else if (current === PROGID) {
+  } else if (current === PROGID || current === LEGACY_PROGID) {
     reg(['add', `${CLASSES}\\${EXT}`, '/ve', '/d', '', '/f']);
   }
   try { execFileSync('reg', ['delete', STORE_KEY, '/v', PREV_VALUE, '/f'], { windowsHide: true, stdio: 'pipe' }); } catch (_) { /* ignore */ }
+  try { execFileSync('reg', ['delete', LEGACY_STORE_KEY, '/v', PREV_VALUE, '/f'], { windowsHide: true, stdio: 'pipe' }); } catch (_) { /* ignore */ }
   notifyShell();
   return { ok: true, restored };
 }

@@ -22,8 +22,8 @@ const { ZipFile, resolveZipEntry } = require('./zip');
 const { cmpVer } = require('./version');
 const { Sources } = require('./sources');
 
-const OWNER = 'RoutineMiku';
-const REPO = 'apkstart';
+const OWNER = 'Dreftian';
+const REPO = 'Apknative';
 
 /** PowerShell 单引号字符串：内部的 ' 要写成 '' */
 function psq(s) {
@@ -288,7 +288,11 @@ class Updater {
   }
 
   /** 载荷就绪标记文件：解压完整落盘后才写，供跨进程复用判断 */
-  _readyFile(payload) { return path.join(payload, '.apkstart-ready'); }
+  _readyFile(payload) {
+    const f1 = path.join(payload, '.apknative-ready');
+    const f2 = path.join(payload, '.apkstart-ready');
+    return fs.existsSync(f2) ? f2 : f1;
+  }
 
   _markPayloadReady(payload, version) {
     try {
@@ -303,7 +307,7 @@ class Updater {
       // 版本不符 = 上次下的是别的版本，不能复用
       if (m.version !== version) return false;
       // 关键：程序主 exe 必须在载荷里。没有它说明解压被中断/被杀软删过。
-      const exeName = path.basename(this.exePath || 'ApkStart.exe');
+      const exeName = path.basename(this.exePath || 'Apknative.exe');
       return !!findInDir(payload, exeName);
     } catch (_) {
       return false;
@@ -383,6 +387,7 @@ class Updater {
         `} else {`,
         `  if ($hasBackup) { try { Remove-Item -LiteralPath $backup -Force } catch {} }`,
         // 只有确认复制成功，才清掉载荷与就绪标记；否则留给 findResumableJob 续做。
+        `  try { Remove-Item -LiteralPath (Join-Path $src '.apknative-ready') -Force } catch {}`,
         `  try { Remove-Item -LiteralPath (Join-Path $src '.apkstart-ready') -Force } catch {}`,
         `  Remove-Item -Path $src -Recurse -Force`,
         `}`,

@@ -1,7 +1,7 @@
 'use strict';
 /**
  * 本地持久化：应用清单 + 设置
- * 数据目录：%APPDATA%\apkstart（MSIX/商店版见下面的 STORE_BUILD 说明）
+ * 数据目录：%APPDATA%\apknative（MSIX/商店版见下面的 STORE_BUILD 说明）
  */
 const fs = require('fs');
 const path = require('path');
@@ -14,10 +14,10 @@ const { safeFilePart } = require('./pkgname');
  * MSIX 的 full-trust 应用会把 `%APPDATA%` / `%LOCALAPPDATA%` 下的**写入**
  * 重定向到 `%LOCALAPPDATA%\Packages\<PackageFamilyName>\LocalCache\...`，
  * 但环境变量和 API 返回的仍然是被重定向前的「真路径」。这会造成两类事故：
- *   1. 我们从 %APPDATA%\apkstart 里 spawn 出来的 emulator/adb/qemu 若没有包身份，
+ *   1. 我们从 %APPDATA%\apknative 里 spawn 出来的 emulator/adb/qemu 若没有包身份，
  *      按真路径去找文件会「文件不存在」；
  *   2. 用户点「打开数据目录」看到的是空目录。
- * 所以商店版直接把数据目录放到 AppData **之外**（%USERPROFILE%\ApkStart），
+ * 所以商店版直接把数据目录放到 AppData **之外**（%USERPROFILE%\Apknative），
  * 完全不进虚拟化范围，父子进程看到的是同一份真实文件。
  *
  * process.windowsStore 由 Electron 在 MSIX/APPX 环境下注入（普通 node 下是 undefined）。
@@ -26,9 +26,17 @@ const STORE_BUILD = (() => {
   try { return !!require('electron').app?.isPackaged && !!process.windowsStore; } catch (_) { return false; }
 })();
 
-const DATA_DIR = STORE_BUILD
-  ? path.join(os.homedir(), 'ApkStart', 'data')
-  : path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'apkstart');
+const DATA_DIR = (() => {
+  if (STORE_BUILD) {
+    const modern = path.join(os.homedir(), 'Apknative', 'data');
+    const legacy = path.join(os.homedir(), 'ApkStart', 'data');
+    return (!fs.existsSync(modern) && fs.existsSync(legacy)) ? legacy : modern;
+  }
+  const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
+  const modern = path.join(appData, 'apknative');
+  const legacy = path.join(appData, 'apkstart');
+  return (!fs.existsSync(modern) && fs.existsSync(legacy)) ? legacy : modern;
+})();
 const ICON_DIR = path.join(DATA_DIR, 'icons');
 const APK_DIR = path.join(DATA_DIR, 'apks');
 const APPS_FILE = path.join(DATA_DIR, 'apps.json');
@@ -143,8 +151,8 @@ const DEFAULT_SETTINGS = {
     // 想用 Gitee 作为更新源就在这里填一个只读 token；留空则只用 GitHub + 镜像。
     giteeToken: '',
   },
-  sharedDir: path.join(os.homedir(), 'ApkStartShared'),
-  deviceSharedDir: '/sdcard/ApkStartShared',
+  sharedDir: path.join(os.homedir(), 'ApknativeShared'),
+  deviceSharedDir: '/sdcard/ApknativeShared',
   autoConnect: true,
   createShortcutOnInstall: true,
   createStartMenuShortcut: true, // 开始菜单快捷方式 = 让 Windows 搜索能搜到应用

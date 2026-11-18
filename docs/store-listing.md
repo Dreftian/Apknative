@@ -12,7 +12,7 @@
 | Product name | `ApkStart` |
 | Category | Developer tools → Utilities & tools（备选：Productivity） |
 | Price | Free |
-| Package | `dist/store/ApkStart_0.5.8.0_x64.msix`（x64，约 850 MB） |
+| Package | `dist/store/Apknative_0.5.8.0_x64.msix`（x64，约 850 MB） |
 | 支持语言 | 简体中文 / English (United States) |
 | 官网 | https://github.com/RoutineMiku/apkstart |
 | 支持邮箱 | <!-- 填你的邮箱 --> |
@@ -323,7 +323,7 @@ Notes:
    ```powershell
    node build/msix.js --identity "<Identity/Name>" --publisher "<Identity/Publisher>"
    ```
-4. **Packages** → 上传 `dist/store/ApkStart_0.5.8.0_x64.msix`，等待校验通过。
+4. **Packages** → 上传 `dist/store/Apknative_0.5.8.0_x64.msix`，等待校验通过。
 5. **Store listing** → 填第 2–5 节的内容、上传截图、选分类。
 6. **Pricing and availability** → Free，市场选中国 + 全球。
 7. **Submission options** → 粘贴第 6 节的 certification notes。

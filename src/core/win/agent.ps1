@@ -1305,7 +1305,7 @@ public class ApkAgent
                         // 换成用户看得懂的名字（默认 "ApkStart"）。Qt 会在窗口重建时
                         // 把标题改回去，所以 QuietSweep 每轮巡检都会补设一次（见下）。
                         string t = S(line, "text");
-                        if (t.Length == 0) t = "ApkStart";
+                        if (t.Length == 0) t = "Apknative";
                         _ourTitle = t;
                         if (_emu == IntPtr.Zero) _emu = FindEmulator();
                         bool ok = _emu != IntPtr.Zero && SetWindowTextW(_emu, t);

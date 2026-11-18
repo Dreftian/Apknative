@@ -1,7 +1,6 @@
 'use strict';
-/* ApkStart 开机动画脚本：接收主进程的进度更新，控制淡出 */
-
-const api = window.apkstartSplash;
+// ApkStart 开机动画脚本：接收主进程的进度更新，控制淡出
+const api = window.apknativeSplash || window.apkstartSplash;
 if (!api) { /* preload 未注入时静默退出 */ }
 
 const $ = (id) => document.getElementById(id);
@@ -20,13 +19,13 @@ Promise.all([
   // 用户抱怨的就是「装了 850MB 还在下镜像」，实际那只是把包里的压缩镜像
   // 展开到用户目录，不需要联网。
   if (bundled) {
-    if ($('firstRunTitle')) $('firstRunTitle').textContent = '首次启动 · 本地准备中（无需联网）';
+    if ($('firstRunTitle')) $('firstRunTitle').textContent = 'Primer inicio · Preparación local (sin descargas)';
     if ($('firstRunList')) {
       $('firstRunList').innerHTML = [
-        '<li>运行时组件已随安装包内置，不再下载任何东西</li>',
-        '<li>把系统镜像展开到用户目录（约 1 分钟，只需一次）</li>',
-        '<li>准备硬件加速与中文输入法</li>',
-        '<li>完成后双击 APK 或桌面图标即可秒开应用</li>',
+        '<li>Los componentes del entorno vienen incluidos en el paquete</li>',
+        '<li>Descomprimiendo imagen del sistema en el directorio de usuario (~1 min, solo una vez)</li>',
+        '<li>Preparando aceleración por hardware y configuración inicial</li>',
+        '<li>Al terminar, haz doble clic en cualquier APK para abrirlo al instante</li>',
       ].join('');
     }
   }
